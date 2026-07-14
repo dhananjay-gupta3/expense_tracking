@@ -29,6 +29,7 @@ This application lets a user record daily expenses with an amount, description, 
 - 🔔 **Toast notifications** for add / update / delete and errors
 - 💀 **Skeleton loading states** and friendly empty states
 - 🧹 **Auto-clearing form** after a successful add, then re-fetches the latest list
+- 🌗 **Light & dark mode** — toggle in the header; remembers your choice and defaults to your system preference
 - 📱 **Fully responsive** — sticky form column on desktop, single column on mobile
 - ⚠️ Friendly error messages when the API is unreachable or validation fails
 

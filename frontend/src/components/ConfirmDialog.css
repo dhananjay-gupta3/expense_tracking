@@ -76,7 +76,7 @@
 
 .btn-dialog-cancel {
   border: 1px solid var(--border);
-  background-color: #fff;
+  background-color: var(--card-bg);
   color: var(--text-body);
 }
 

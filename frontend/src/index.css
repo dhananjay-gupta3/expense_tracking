@@ -5,6 +5,8 @@
 }
 
 :root {
+  color-scheme: light;
+
   /* Brand */
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
@@ -28,8 +30,11 @@
   --text-faint: #94a3b8;
   --bg: #f4f6fb;
   --card-bg: #ffffff;
+  --input-bg: #ffffff;
   --border: #e2e8f0;
   --border-light: #f1f5f9;
+  --skeleton-base: #eef1f6;
+  --skeleton-highlight: #f7f9fc;
 
   /* Shape & elevation */
   --radius-sm: 8px;
@@ -58,6 +63,63 @@
   --cat-other-bg: #f8fafc;
 }
 
+/* Dark theme — toggled via data-theme="dark" on <html> */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Brand */
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-darker: #93c5fd;
+  --primary-light: #1e3a5f;
+  --primary-lighter: #16233f;
+
+  /* Semantic */
+  --danger: #f87171;
+  --danger-dark: #ef4444;
+  --danger-light: #3b1a1a;
+  --danger-border: #7f1d1d;
+  --success: #4ade80;
+  --success-light: #142e1f;
+  --warning: #fbbf24;
+
+  /* Neutrals */
+  --text-dark: #f1f5f9;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --bg: #0b1220;
+  --card-bg: #16213a;
+  --input-bg: #0e1730;
+  --border: #2b3a55;
+  --border-light: #22304a;
+  --skeleton-base: #1c2946;
+  --skeleton-highlight: #263356;
+
+  /* Elevation — stronger shadows read better on dark */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.55);
+
+  /* Category accents — brighter text, translucent backgrounds */
+  --cat-food: #fb923c;
+  --cat-food-bg: rgba(249, 115, 22, 0.16);
+  --cat-travel: #38bdf8;
+  --cat-travel-bg: rgba(2, 132, 199, 0.16);
+  --cat-shopping: #f472b6;
+  --cat-shopping-bg: rgba(219, 39, 119, 0.16);
+  --cat-bills: #facc15;
+  --cat-bills-bg: rgba(202, 138, 4, 0.16);
+  --cat-entertainment: #a78bfa;
+  --cat-entertainment-bg: rgba(124, 58, 237, 0.18);
+  --cat-health: #4ade80;
+  --cat-health-bg: rgba(22, 163, 74, 0.16);
+  --cat-education: #2dd4bf;
+  --cat-education-bg: rgba(13, 148, 136, 0.16);
+  --cat-other: #94a3b8;
+  --cat-other-bg: rgba(100, 116, 139, 0.16);
+}
+
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -70,6 +132,7 @@ body {
   color: var(--text-body);
   line-height: 1.5;
   min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 h1,
