@@ -304,15 +304,7 @@ Response `200 OK`:
 }
 ```
 
----
 
-## 📸 Screenshots
-
-> Add your screenshots here.
-
-| Home Page | Add Expense | Expense List |
-| --------- | ----------- | ------------ |
-| _screenshot_ | _screenshot_ | _screenshot_ |
 
 ---
 
