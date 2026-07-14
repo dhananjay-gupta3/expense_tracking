@@ -315,6 +315,42 @@ Response `200 OK`:
 
 ---
 
+## ☁️ Deploying to Render
+
+This repo contains **two apps** (`backend/` and `frontend/`), so it deploys as **two Render services** — a single service running `npm run build` at the repo root will fail with `Missing script: "build"`.
+
+### Option A — Blueprint (easiest)
+
+A [render.yaml](render.yaml) is included. In Render: **New + → Blueprint → select this repo**, then fill in the environment variables when prompted.
+
+### Option B — Manual setup
+
+**1. Backend → Web Service**
+
+| Setting        | Value                          |
+| -------------- | ------------------------------ |
+| Root Directory | `backend`                      |
+| Build Command  | `npm install`                  |
+| Start Command  | `npm start`                    |
+| Env vars       | `MONGO_URI`, `GEMINI_API_KEY`  |
+
+> Don't set `PORT` — Render provides it automatically and `server.js` already reads `process.env.PORT`.
+
+**2. Frontend → Static Site**
+
+| Setting           | Value                                                |
+| ----------------- | ---------------------------------------------------- |
+| Root Directory    | `frontend`                                           |
+| Build Command     | `npm install && npm run build`                       |
+| Publish Directory | `dist`                                               |
+| Env vars          | `VITE_API_URL` = `https://<your-api>.onrender.com/api` |
+
+**3. MongoDB Atlas** — in **Network Access**, allow `0.0.0.0/0` (Render's outbound IPs vary), or add [Render's static outbound IPs](https://render.com/docs/static-outbound-ip-addresses).
+
+> ⚠️ `VITE_API_URL` is baked in at **build time** — if you change it, redeploy the static site. Free-tier web services sleep after inactivity; the first request after a sleep takes ~30–60s.
+
+---
+
 ## 🚀 Future Improvements
 
 - 🔐 User authentication (JWT) so each user has private expenses

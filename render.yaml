@@ -1,0 +1,33 @@
+# Render Blueprint — deploys the backend (Web Service) and frontend (Static Site).
+# In the Render dashboard: New + → Blueprint → select this repo.
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # Express + MongoDB REST API
+  - type: web
+    name: expense-tracker-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: MONGO_URI
+        sync: false # set the value in the Render dashboard
+      - key: GEMINI_API_KEY
+        sync: false # set the value in the Render dashboard
+
+  # React (Vite) frontend
+  - type: web
+    name: expense-tracker-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false # set to https://<your-api-service>.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
