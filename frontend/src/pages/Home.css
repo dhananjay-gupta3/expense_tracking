@@ -1,0 +1,35 @@
+.home {
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+}
+
+.home-content {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.form-column {
+  position: sticky;
+  top: 86px;
+}
+
+@media (max-width: 860px) {
+  .container {
+    padding: 20px 14px 48px;
+  }
+
+  .home-content {
+    grid-template-columns: 1fr;
+  }
+
+  .form-column {
+    position: static;
+  }
+}

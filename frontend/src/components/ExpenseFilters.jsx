@@ -1,0 +1,91 @@
+import './ExpenseFilters.css';
+
+const CATEGORIES = [
+  'Food',
+  'Travel',
+  'Shopping',
+  'Bills',
+  'Entertainment',
+  'Health',
+  'Education',
+  'Other',
+];
+
+const SORT_OPTIONS = [
+  { value: 'date-desc', label: 'Newest first' },
+  { value: 'date-asc', label: 'Oldest first' },
+  { value: 'amount-desc', label: 'Amount: high to low' },
+  { value: 'amount-asc', label: 'Amount: low to high' },
+];
+
+function ExpenseFilters({ filters, monthOptions, onFilterChange, onClear }) {
+  const hasActiveFilters =
+    filters.search !== '' ||
+    filters.category !== '' ||
+    filters.month !== '' ||
+    filters.sort !== 'date-desc';
+
+  return (
+    <div className="expense-filters">
+      <div className="filter-search">
+        <span className="filter-search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Search expenses…"
+          value={filters.search}
+          onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+          aria-label="Search expenses"
+        />
+      </div>
+
+      <select
+        className="filter-select"
+        value={filters.month}
+        onChange={(e) => onFilterChange({ ...filters, month: e.target.value })}
+        aria-label="Filter by month"
+      >
+        <option value="">All months</option>
+        {monthOptions.map((month) => (
+          <option key={month.value} value={month.value}>
+            {month.label}
+          </option>
+        ))}
+      </select>
+
+      <select
+        className="filter-select"
+        value={filters.category}
+        onChange={(e) => onFilterChange({ ...filters, category: e.target.value })}
+        aria-label="Filter by category"
+      >
+        <option value="">All categories</option>
+        {CATEGORIES.map((category) => (
+          <option key={category} value={category}>
+            {category}
+          </option>
+        ))}
+      </select>
+
+      <select
+        className="filter-select"
+        value={filters.sort}
+        onChange={(e) => onFilterChange({ ...filters, sort: e.target.value })}
+        aria-label="Sort expenses"
+      >
+        {SORT_OPTIONS.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+
+      {hasActiveFilters && (
+        <button type="button" className="filter-clear" onClick={onClear}>
+          Clear
+        </button>
+      )}
+    </div>
+  );
+}
+
+export default ExpenseFilters;
