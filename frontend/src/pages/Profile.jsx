@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { updateMe } from '../services/authService';
+import { updateMe, changePassword } from '../services/authService';
 import { getExpenses } from '../services/expenseService';
 import useCountUp from '../hooks/useCountUp';
 import Toast from '../components/Toast.jsx';
@@ -154,6 +154,170 @@ function ProfileStats({ expenses, budget }) {
   );
 }
 
+function PasswordSection({ onToast }) {
+  const { user, setUser } = useAuth();
+  const hasPassword = user.hasPassword;
+
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const close = () => {
+    setOpen(false);
+    setCurrent('');
+    setNext('');
+    setConfirm('');
+    setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (next.length < 6) {
+      setError('New password must be at least 6 characters');
+      return;
+    }
+    if (next !== confirm) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const updated = await changePassword({
+        currentPassword: hasPassword ? current : undefined,
+        newPassword: next,
+      });
+      setUser(updated);
+      close();
+      onToast({
+        message: hasPassword ? 'Password changed' : 'Password set — you can now log in with it',
+        type: 'success',
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to change password');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <div className="profile-card">
+        <h2 className="profile-section-title">🔒 Security</h2>
+
+        <div className="profile-security-row">
+          <div className="profile-security-info">
+            <strong>Password</strong>
+            <span>
+              {hasPassword
+                ? 'Protects your email + password login'
+                : 'Not set — you currently log in with Google only'}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="profile-password-btn"
+            onClick={() => setOpen(true)}
+          >
+            {hasPassword ? 'Change password' : 'Set password'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="profile-card">
+      <h2 className="profile-section-title">🔒 Security</h2>
+
+      {!hasPassword && (
+        <p className="profile-security-note">
+          You signed up with Google. Set a password to also log in with email + password.
+        </p>
+      )}
+
+      <form className="profile-form" onSubmit={handleSubmit}>
+        {hasPassword && (
+          <div className="profile-field">
+            <label htmlFor="current-password">Current password</label>
+            <input
+              id="current-password"
+              type="password"
+              autoComplete="current-password"
+              value={current}
+              onChange={(e) => {
+                setCurrent(e.target.value);
+                setError('');
+              }}
+              required
+            />
+          </div>
+        )}
+
+        <div className="profile-field-row">
+          <div className="profile-field">
+            <label htmlFor="new-password">New password</label>
+            <input
+              id="new-password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="At least 6 characters"
+              minLength={6}
+              value={next}
+              onChange={(e) => {
+                setNext(e.target.value);
+                setError('');
+              }}
+              required
+            />
+          </div>
+
+          <div className="profile-field">
+            <label htmlFor="confirm-password">Confirm new password</label>
+            <input
+              id="confirm-password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="Repeat new password"
+              value={confirm}
+              onChange={(e) => {
+                setConfirm(e.target.value);
+                setError('');
+              }}
+              required
+            />
+          </div>
+        </div>
+
+        {error && <p className="profile-error">{error}</p>}
+
+        <div className="profile-actions profile-actions-single">
+          <button
+            type="submit"
+            className="profile-save"
+            disabled={saving || !next || !confirm || (hasPassword && !current)}
+          >
+            {saving ? 'Saving…' : hasPassword ? 'Change password' : 'Set password'}
+          </button>
+          <button
+            type="button"
+            className="profile-cancel"
+            onClick={close}
+            disabled={saving}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function Profile({ onBack }) {
   const { user, setUser, logout } = useAuth();
 
@@ -248,6 +412,10 @@ function Profile({ onBack }) {
                 </span>
               </div>
             </div>
+
+            <button type="button" className="profile-logout" onClick={logout}>
+              <span aria-hidden="true">⏻</span> Logout
+            </button>
           </div>
 
           {expenses === null ? (
@@ -307,16 +475,15 @@ function Profile({ onBack }) {
               </span>
             </label>
 
-            <div className="profile-actions">
+            <div className="profile-actions profile-actions-single">
               <button type="submit" className="profile-save" disabled={saving || !dirty}>
                 {saving ? 'Saving…' : 'Save changes'}
-              </button>
-              <button type="button" className="profile-logout" onClick={logout}>
-                Log out
               </button>
             </div>
           </form>
         </div>
+
+        <PasswordSection onToast={setToast} />
       </div>
 
       <Toast toast={toast} onDismiss={() => setToast(null)} />

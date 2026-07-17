@@ -41,3 +41,9 @@ export const updateMe = async (updates) => {
   const response = await api.put('/auth/me', updates);
   return response.data.data.user;
 };
+
+// PUT /api/auth/password — change (or set) the account password
+export const changePassword = async ({ currentPassword, newPassword }) => {
+  const response = await api.put('/auth/password', { currentPassword, newPassword });
+  return response.data.data.user;
+};

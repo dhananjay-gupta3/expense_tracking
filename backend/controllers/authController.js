@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
-const { sendOtpEmail } = require('../utils/sendEmail');
+const { sendOtpEmail, sendPasswordChangedEmail } = require('../utils/sendEmail');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
 
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -90,6 +90,16 @@ const signup = async (req, res) => {
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ success: false, message: messages[0] });
+    }
+
+    // SMTP unreachable/misconfigured — the account was saved, only the email failed
+    if (error.code === 'ETIMEDOUT' || error.code === 'ECONNECTION' || error.command) {
+      console.error('OTP email failed:', error.message);
+      return res.status(502).json({
+        success: false,
+        message:
+          'Could not send the verification email right now. Please try again in a minute.',
+      });
     }
 
     res.status(500).json({
@@ -389,4 +399,79 @@ const updateMe = async (req, res) => {
   }
 };
 
-module.exports = { signup, verifyOtp, resendOtp, login, googleAuth, getMe, updateMe };
+// @desc    Change password (or set one on a Google-only account)
+// @route   PUT /api/auth/password
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = req.user; // loaded with +password by the auth middleware
+
+    if (!newPassword || String(newPassword).length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters',
+      });
+    }
+
+    // Google-only accounts have no password yet — they may set one directly
+    if (user.password) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current password is required',
+        });
+      }
+
+      const matches = await user.matchPassword(currentPassword);
+      if (!matches) {
+        return res.status(401).json({
+          success: false,
+          message: 'Current password is incorrect',
+        });
+      }
+
+      if (currentPassword === newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'New password must be different from the current one',
+        });
+      }
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    // Best-effort security notification — never fail the request over email
+    sendPasswordChangedEmail(user.email, user.name).catch((err) =>
+      console.error('Password-changed email failed:', err.message)
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully',
+      data: { user: sanitizeUser(user) },
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({ success: false, message: messages[0] });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error while changing password',
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  signup,
+  verifyOtp,
+  resendOtp,
+  login,
+  googleAuth,
+  getMe,
+  updateMe,
+  changePassword,
+};

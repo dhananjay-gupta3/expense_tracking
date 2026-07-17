@@ -76,6 +76,7 @@
 
 .profile-identity-text {
   min-width: 0;
+  flex: 1;
 }
 
 .profile-email {
@@ -359,6 +360,108 @@
   margin-top: 5px;
 }
 
+.profile-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.profile-security-note {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background-color: var(--primary-lighter);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 16px;
+}
+
+.profile-error {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--danger);
+  background-color: var(--danger-light);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  animation: shakeX 0.35s ease;
+}
+
+.profile-actions-single {
+  justify-content: flex-start;
+}
+
+/* Collapsed security row with the change-password button */
+.profile-security-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.profile-security-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-security-info strong {
+  font-size: 0.92rem;
+  color: var(--text-dark);
+}
+
+.profile-security-info span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.profile-password-btn {
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  background-color: var(--input-bg);
+  color: var(--text-body);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease,
+    background-color var(--duration-fast) ease, transform 0.1s;
+}
+
+.profile-password-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background-color: var(--primary-lighter);
+}
+
+.profile-password-btn:active {
+  transform: scale(0.98);
+}
+
+.profile-cancel {
+  padding: 11px 18px;
+  border: 1px solid var(--border);
+  background-color: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.profile-cancel:hover {
+  color: var(--text-dark);
+  border-color: var(--text-faint);
+}
+
+@media (max-width: 480px) {
+  .profile-field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Email alerts switch */
 .profile-toggle {
   display: flex;
@@ -453,17 +556,29 @@
   cursor: not-allowed;
 }
 
+/* Logout — pinned to the top-right corner of the identity card */
 .profile-logout {
-  padding: 11px 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 9px 15px;
   border: 1px solid var(--danger-border);
   background-color: transparent;
   color: var(--danger);
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 600;
-  transition: background-color 0.15s;
+  white-space: nowrap;
+  transition: background-color 0.15s, transform 0.1s;
 }
 
 .profile-logout:hover {
   background-color: var(--danger-light);
+}
+
+.profile-logout:active {
+  transform: scale(0.96);
 }

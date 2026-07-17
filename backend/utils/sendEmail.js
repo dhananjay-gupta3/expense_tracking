@@ -11,6 +11,10 @@ const getTransporter = () =>
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    // Fail fast instead of hanging for minutes when the host blocks SMTP
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 
 const sendEmail = async ({ to, subject, html, text }) => {
@@ -96,4 +100,20 @@ const sendBudgetAlertEmail = async (to, name, { spent, budget, monthLabel, level
   });
 };
 
-module.exports = { sendEmail, sendOtpEmail, sendBudgetAlertEmail };
+const sendPasswordChangedEmail = async (to, name) => {
+  const html = layout(`
+    <h2 style="color:#0f172a;font-size:19px;margin:0 0 10px;">🔒 Your password was changed</h2>
+    <p style="font-size:14px;line-height:1.6;">Hi ${name},</p>
+    <p style="font-size:14px;line-height:1.6;">The password for your Expense Tracker account was just changed.</p>
+    <p style="font-size:13px;color:#64748b;">If this was you, no action is needed. If you did not do this, log in and change your password immediately.</p>
+  `);
+
+  await sendEmail({
+    to,
+    subject: 'Your Expense Tracker password was changed',
+    html,
+    text: `Hi ${name}, the password for your Expense Tracker account was just changed. If this wasn't you, change your password immediately.`,
+  });
+};
+
+module.exports = { sendEmail, sendOtpEmail, sendBudgetAlertEmail, sendPasswordChangedEmail };
