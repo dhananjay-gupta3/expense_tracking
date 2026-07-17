@@ -12,7 +12,7 @@ const CATEGORIES = [
 ];
 
 const SORT_OPTIONS = [
-  { value: 'date-desc', label: 'Newest first' },
+  { value: 'created-desc', label: 'Recently added' },
   { value: 'date-asc', label: 'Oldest first' },
   { value: 'amount-desc', label: 'Amount: high to low' },
   { value: 'amount-asc', label: 'Amount: low to high' },
@@ -23,7 +23,7 @@ function ExpenseFilters({ filters, monthOptions, onFilterChange, onClear }) {
     filters.search !== '' ||
     filters.category !== '' ||
     filters.month !== '' ||
-    filters.sort !== 'date-desc';
+    filters.sort !== 'created-desc';
 
   return (
     <div className="expense-filters">

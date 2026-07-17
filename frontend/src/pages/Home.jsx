@@ -18,7 +18,7 @@ const defaultFilters = {
   search: '',
   category: '',
   month: '',
-  sort: 'date-desc',
+  sort: 'created-desc',
 };
 
 const monthKeyOf = (expense) => expense.date.slice(0, 7); // "YYYY-MM"
@@ -124,6 +124,9 @@ function Home() {
       result = result.filter((expense) => monthKeyOf(expense) === filters.month);
     }
 
+    const newestAddedFirst = (a, b) =>
+      new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
+
     switch (filters.sort) {
       case 'date-asc':
         result.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -134,16 +137,17 @@ function Home() {
       case 'amount-asc':
         result.sort((a, b) => a.amount - b.amount);
         break;
-      case 'date-desc':
+      case 'created-desc':
       default:
-        result.sort((a, b) => new Date(b.date) - new Date(a.date));
+        result.sort(newestAddedFirst);
         break;
     }
 
     return result;
   }, [expenses, filters]);
 
-  // Group the filtered list by month, each group with its own subtotal
+  // Keep the Expenses view organized month by month. Items inside every
+  // month retain the selected order (recently added, date, or amount).
   const groupedExpenses = useMemo(() => {
     const groups = new Map();
 
@@ -157,9 +161,10 @@ function Home() {
       group.items.push(expense);
     }
 
-    const ordered = [...groups.values()].sort((a, b) =>
-      filters.sort === 'date-asc' ? a.key.localeCompare(b.key) : b.key.localeCompare(a.key)
-    );
+    const ordered = [...groups.values()].sort((a, b) => {
+      if (filters.sort === 'date-asc') return a.key.localeCompare(b.key);
+      return b.key.localeCompare(a.key);
+    });
 
     return ordered;
   }, [filteredExpenses, filters.sort]);
@@ -209,6 +214,7 @@ function Home() {
 
           <ExpenseList
             groups={groupedExpenses}
+            expenses={filteredExpenses}
             filteredCount={filteredExpenses.length}
             totalCount={expenses.length}
             loading={loading}

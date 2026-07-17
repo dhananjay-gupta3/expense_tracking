@@ -16,8 +16,15 @@ const isSameDay = (a, b) =>
   a.getMonth() === b.getMonth() &&
   a.getFullYear() === b.getFullYear();
 
+const dateFromCalendarValue = (dateValue) => {
+  const [year, month, day] = String(dateValue).slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
 const getDateLabel = (dateValue) => {
-  const date = new Date(dateValue);
+  // Expense dates are calendar dates. Parse only the YYYY-MM-DD portion in
+  // local time so UTC conversion cannot make tomorrow appear as today.
+  const date = dateFromCalendarValue(dateValue);
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);

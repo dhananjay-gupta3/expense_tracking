@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import ExpenseItem from './ExpenseItem.jsx';
 import ExpenseFilters from './ExpenseFilters.jsx';
 import './ExpenseList.css';
@@ -35,6 +36,15 @@ function ExpenseList({
   onDeleteExpense,
   onExportCsv,
 }) {
+  // Re-render after midnight so labels such as "Today" update even if the
+  // app remains open overnight.
+  const [, setClock] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(Date.now()), 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const isFiltered = totalCount > 0 && filteredCount !== totalCount;
 
   return (

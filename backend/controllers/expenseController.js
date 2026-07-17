@@ -23,7 +23,9 @@ const getExpenses = async (req, res) => {
       if (to) query.date.$lte = new Date(to);
     }
 
-    const expenses = await Expense.find(query).sort({ date: -1, createdAt: -1 });
+    // Keep the most recently added record at the top. The expense date is
+    // user-entered and may be older than the time at which it was added.
+    const expenses = await Expense.find(query).sort({ createdAt: -1, _id: -1 });
 
     res.status(200).json({
       success: true,
