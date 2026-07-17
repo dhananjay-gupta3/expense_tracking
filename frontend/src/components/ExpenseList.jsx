@@ -25,6 +25,7 @@ function SkeletonItem() {
 
 function ExpenseList({
   groups,
+  expenses,
   filteredCount,
   totalCount,
   loading,
@@ -46,6 +47,10 @@ function ExpenseList({
   }, []);
 
   const isFiltered = totalCount > 0 && filteredCount !== totalCount;
+
+  // Amount sorts order the whole list, so month grouping would override
+  // them — render a flat list instead.
+  const isAmountSort = filters.sort.startsWith('amount');
 
   return (
     <div className="expense-list-card">
@@ -94,6 +99,17 @@ function ExpenseList({
               : 'Try adjusting your search or filters.'}
           </p>
         </div>
+      ) : isAmountSort ? (
+        <ul className="expense-list">
+          {expenses.map((expense) => (
+            <ExpenseItem
+              key={expense._id}
+              expense={expense}
+              onEdit={onEditExpense}
+              onDelete={onDeleteExpense}
+            />
+          ))}
+        </ul>
       ) : (
         <div className="month-groups">
           {groups.map((group) => (
