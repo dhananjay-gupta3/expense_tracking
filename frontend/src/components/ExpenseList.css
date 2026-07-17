@@ -208,3 +208,23 @@
   height: 16px;
   width: 72px;
 }
+
+@media (max-width: 560px) {
+  .expense-list-card {
+    padding: 16px 14px;
+  }
+
+  .list-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .month-group-header {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .month-group-meta {
+    white-space: normal;
+  }
+}

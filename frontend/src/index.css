@@ -140,6 +140,21 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   transition: background-color 0.25s ease, color 0.25s ease;
+  /* Never allow sideways scroll from an overflowing element */
+  overflow-x: clip;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+}
+
+/* Comfortable touch targets on coarse pointers */
+@media (pointer: coarse) {
+  button {
+    min-height: 32px;
+  }
 }
 
 h1,

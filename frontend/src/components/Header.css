@@ -206,3 +206,29 @@
     display: none;
   }
 }
+
+@media (max-width: 420px) {
+  .app-header-inner {
+    padding: 10px 14px;
+  }
+
+  .app-subtitle {
+    display: none;
+  }
+
+  .app-logo {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+  }
+
+  .app-title {
+    font-size: 0.95rem;
+  }
+
+  .theme-toggle {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+  }
+}

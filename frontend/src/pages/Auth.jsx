@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { signup, login, googleLogin } from '../services/authService';
+import PasswordInput from '../components/PasswordInput.jsx';
+import { MailIcon, UserIcon } from '../components/icons.jsx';
 import './Auth.css';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -28,10 +30,12 @@ function GoogleButton({ onError }) {
         client_id: GOOGLE_CLIENT_ID,
         callback: handleCredential,
       });
+      // Fit the button to the card on narrow screens (GIS needs a pixel width)
+      const width = Math.min(320, buttonRef.current?.offsetWidth || 320);
       window.google.accounts.id.renderButton(buttonRef.current, {
         theme: 'outline',
         size: 'large',
-        width: 320,
+        width,
         text: 'continue_with',
       });
     };
@@ -134,38 +138,49 @@ function Auth() {
           {mode === 'signup' && (
             <div className="auth-field">
               <label htmlFor="name">Name</label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Your name"
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
+              <div className="icon-input-wrap">
+                <span className="icon-input-icon">
+                  <UserIcon />
+                </span>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  className="icon-input-field"
+                  placeholder="Your name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
           )}
 
           <div className="auth-field">
             <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
+            <div className="icon-input-wrap">
+              <span className="icon-input-icon">
+                <MailIcon />
+              </span>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                className="icon-input-field"
+                placeholder="you@example.com"
+                autoComplete="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
 
           <div className="auth-field">
             <label htmlFor="password">Password</label>
-            <input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               placeholder={mode === 'signup' ? 'At least 6 characters' : 'Your password'}
               autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
               minLength={6}

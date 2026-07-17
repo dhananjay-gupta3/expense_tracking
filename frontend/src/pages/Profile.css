@@ -320,6 +320,52 @@
   }
 }
 
+@media (max-width: 560px) {
+  .profile-card {
+    position: relative;
+    padding: 20px 16px;
+  }
+
+  /* Keep Logout in the top-right corner without squeezing the name */
+  .profile-logout {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    padding: 7px 12px;
+    font-size: 0.8rem;
+  }
+
+  .profile-identity {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-right: 96px;
+  }
+
+  .profile-identity-text {
+    flex-basis: 100%;
+  }
+
+  .profile-avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 1.4rem;
+  }
+
+  .profile-actions {
+    flex-wrap: wrap;
+  }
+
+  .profile-save {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 360px) {
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .profile-form {
   display: flex;
   flex-direction: column;

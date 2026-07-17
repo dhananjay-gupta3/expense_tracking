@@ -229,6 +229,25 @@
 
 @media (max-width: 480px) {
   .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-value {
+    font-size: 1.15rem;
+  }
+
+  .stat-sub {
+    font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .stats-grid {
     grid-template-columns: 1fr;
   }
 }

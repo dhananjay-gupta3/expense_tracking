@@ -4,6 +4,7 @@ import { updateMe, changePassword } from '../services/authService';
 import { getExpenses } from '../services/expenseService';
 import useCountUp from '../hooks/useCountUp';
 import Toast from '../components/Toast.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 import './Profile.css';
 
 const CATEGORY_META = {
@@ -245,9 +246,8 @@ function PasswordSection({ onToast }) {
         {hasPassword && (
           <div className="profile-field">
             <label htmlFor="current-password">Current password</label>
-            <input
+            <PasswordInput
               id="current-password"
-              type="password"
               autoComplete="current-password"
               value={current}
               onChange={(e) => {
@@ -262,9 +262,8 @@ function PasswordSection({ onToast }) {
         <div className="profile-field-row">
           <div className="profile-field">
             <label htmlFor="new-password">New password</label>
-            <input
+            <PasswordInput
               id="new-password"
-              type="password"
               autoComplete="new-password"
               placeholder="At least 6 characters"
               minLength={6}
@@ -279,9 +278,8 @@ function PasswordSection({ onToast }) {
 
           <div className="profile-field">
             <label htmlFor="confirm-password">Confirm new password</label>
-            <input
+            <PasswordInput
               id="confirm-password"
-              type="password"
               autoComplete="new-password"
               placeholder="Repeat new password"
               value={confirm}
