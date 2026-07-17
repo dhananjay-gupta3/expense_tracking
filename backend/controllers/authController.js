@@ -2,7 +2,11 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
-const { sendOtpEmail, sendPasswordChangedEmail } = require('../utils/sendEmail');
+const {
+  sendOtpEmail,
+  sendPasswordChangedEmail,
+  sendWelcomeEmail,
+} = require('../utils/sendEmail');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
 
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -35,7 +39,7 @@ const issueOtp = async (user) => {
   await sendOtpEmail(user.email, user.name, otp);
 };
 
-// @desc    Register with email + password, then email an OTP
+// @desc    Register with email + password and log the user in immediately
 // @route   POST /api/auth/signup
 const signup = async (req, res) => {
   try {
@@ -56,9 +60,7 @@ const signup = async (req, res) => {
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
-    let user = await User.findOne({ email: normalizedEmail }).select(
-      '+password +otpLastSentAt'
-    );
+    let user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     if (user && user.isVerified) {
       return res.status(400).json({
@@ -68,38 +70,34 @@ const signup = async (req, res) => {
     }
 
     if (user) {
-      // Unverified leftover signup — refresh it instead of blocking the email
+      // Leftover unverified signup from the old OTP flow — refresh it
       user.name = String(name).trim();
       user.password = password;
+      user.isVerified = true;
+      await user.save();
     } else {
-      user = new User({
+      user = await User.create({
         name: String(name).trim(),
         email: normalizedEmail,
         password,
+        isVerified: true,
       });
     }
 
-    await issueOtp(user);
+    // Best-effort welcome email — never blocks account creation
+    sendWelcomeEmail(user.email, user.name).catch((err) =>
+      console.error('Welcome email failed:', err.message)
+    );
 
     res.status(201).json({
       success: true,
-      message: 'Verification code sent to your email',
-      data: { email: user.email },
+      message: 'Account created successfully',
+      data: { token: signToken(user), user: sanitizeUser(user) },
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ success: false, message: messages[0] });
-    }
-
-    // SMTP unreachable/misconfigured — the account was saved, only the email failed
-    if (error.code === 'ETIMEDOUT' || error.code === 'ECONNECTION' || error.command) {
-      console.error('OTP email failed:', error.message);
-      return res.status(502).json({
-        success: false,
-        message:
-          'Could not send the verification email right now. Please try again in a minute.',
-      });
     }
 
     res.status(500).json({
@@ -248,19 +246,11 @@ const login = async (req, res) => {
       });
     }
 
+    // Accounts created under the old OTP flow may still be unverified —
+    // a correct password proves ownership, so verify them on login
     if (!user.isVerified) {
-      // Nudge them back into the OTP flow with a fresh code
-      const canResend =
-        !user.otpLastSentAt ||
-        Date.now() - user.otpLastSentAt.getTime() >= OTP_RESEND_COOLDOWN_MS;
-      if (canResend) await issueOtp(user);
-
-      return res.status(403).json({
-        success: false,
-        needsVerification: true,
-        message: 'Please verify your email. We just sent you a new code.',
-        data: { email: user.email },
-      });
+      user.isVerified = true;
+      await user.save();
     }
 
     res.status(200).json({

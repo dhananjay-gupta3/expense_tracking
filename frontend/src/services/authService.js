@@ -1,9 +1,10 @@
 import api from './api';
 
-// POST /api/auth/signup — creates an account, sends the OTP email
+// POST /api/auth/signup — creates the account and logs in immediately,
+// returns { token, user }
 export const signup = async ({ name, email, password }) => {
   const response = await api.post('/auth/signup', { name, email, password });
-  return response.data;
+  return response.data.data;
 };
 
 // POST /api/auth/verify-otp — activates the account, returns { token, user }

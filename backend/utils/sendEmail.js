@@ -1,6 +1,39 @@
 const nodemailer = require('nodemailer');
 
-const isConfigured = () => Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+const isConfigured = () =>
+  Boolean(process.env.BREVO_API_KEY || (process.env.EMAIL_USER && process.env.EMAIL_PASS));
+
+// "Expense Tracker" <a@b.com>  →  { name, email }
+const parseSender = () => {
+  const from = process.env.EMAIL_FROM || '';
+  const match = from.match(/^\s*"?([^"<]*?)"?\s*<(.+)>\s*$/);
+  if (match) return { name: match[1] || 'Expense Tracker', email: match[2] };
+  return { name: 'Expense Tracker', email: from || process.env.EMAIL_USER };
+};
+
+// HTTPS-based sending — works on hosts that block outbound SMTP (e.g. Render)
+const sendViaBrevoApi = async ({ to, subject, html, text }) => {
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'api-key': process.env.BREVO_API_KEY,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: parseSender(),
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text,
+    }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Brevo API error ${response.status}: ${detail}`);
+  }
+};
 
 const getTransporter = () =>
   nodemailer.createTransport({
@@ -26,6 +59,12 @@ const sendEmail = async ({ to, subject, html, text }) => {
     console.log(`[email disabled] Subject: ${subject}`);
     console.log(`[email disabled] ${text}`);
     console.log('---------------------------------------------');
+    return;
+  }
+
+  // Prefer the HTTP API when configured — SMTP ports are often blocked on PaaS hosts
+  if (process.env.BREVO_API_KEY) {
+    await sendViaBrevoApi({ to, subject, html, text });
     return;
   }
 
@@ -100,6 +139,22 @@ const sendBudgetAlertEmail = async (to, name, { spent, budget, monthLabel, level
   });
 };
 
+const sendWelcomeEmail = async (to, name) => {
+  const html = layout(`
+    <h2 style="color:#0f172a;font-size:19px;margin:0 0 10px;">Welcome to Expense Tracker 🎉</h2>
+    <p style="font-size:14px;line-height:1.6;">Hi ${name},</p>
+    <p style="font-size:14px;line-height:1.6;">Your account is ready. Start adding expenses, set a monthly budget on your profile, and we'll warn you by email when your spending nears the limit.</p>
+    <p style="font-size:13px;color:#64748b;">Happy tracking!</p>
+  `);
+
+  await sendEmail({
+    to,
+    subject: 'Welcome to Expense Tracker 🎉',
+    html,
+    text: `Hi ${name}, your Expense Tracker account is ready. Start adding expenses and set a monthly budget to get spending warnings.`,
+  });
+};
+
 const sendPasswordChangedEmail = async (to, name) => {
   const html = layout(`
     <h2 style="color:#0f172a;font-size:19px;margin:0 0 10px;">🔒 Your password was changed</h2>
@@ -116,4 +171,10 @@ const sendPasswordChangedEmail = async (to, name) => {
   });
 };
 
-module.exports = { sendEmail, sendOtpEmail, sendBudgetAlertEmail, sendPasswordChangedEmail };
+module.exports = {
+  sendEmail,
+  sendOtpEmail,
+  sendBudgetAlertEmail,
+  sendPasswordChangedEmail,
+  sendWelcomeEmail,
+};
