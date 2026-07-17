@@ -14,7 +14,15 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  animation: fadeSlideIn 0.3s ease;
+  animation: fadeSlideIn 0.45s var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger, 0) * 60ms);
+  transition: transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
 .stat-card-highlight {
@@ -68,6 +76,149 @@
 
 .stat-card-highlight .stat-sub {
   color: rgba(255, 255, 255, 0.75);
+}
+
+.stat-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Monthly budget tracker (inside the "This Month" card) */
+.budget-block {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.budget-bar {
+  height: 6px;
+  border-radius: 999px;
+  background-color: var(--border-light);
+  overflow: hidden;
+}
+
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  transition: width var(--duration-slow) var(--ease-out),
+    background-color var(--duration) ease;
+  transform-origin: left center;
+  animation: barGrowX var(--duration-slow) var(--ease-out);
+}
+
+.budget-bar-over {
+  background: linear-gradient(90deg, var(--warning), var(--danger));
+}
+
+.budget-meta {
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--duration-fast) ease;
+}
+
+.budget-meta:hover {
+  color: var(--primary);
+}
+
+.budget-meta-over {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.budget-edit-hint {
+  opacity: 0;
+  font-size: 0.7rem;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.budget-meta:hover .budget-edit-hint {
+  opacity: 1;
+}
+
+.budget-set-link {
+  margin-top: 10px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  align-self: flex-start;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease,
+    background-color var(--duration-fast) ease;
+}
+
+.budget-set-link:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background-color: var(--primary-lighter);
+}
+
+.budget-editor-wrap {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: popIn 0.2s var(--ease-out);
+}
+
+.budget-editor {
+  display: flex;
+  gap: 6px;
+}
+
+.budget-remove-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  align-self: flex-start;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--danger);
+  opacity: 0.85;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.budget-remove-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.budget-editor input {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 8px;
+  font-size: 0.8rem;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background-color: var(--input-bg);
+  color: var(--text-dark);
+  outline: none;
+}
+
+.budget-btn {
+  border: 1px solid var(--border);
+  background-color: var(--input-bg);
+  color: var(--text-body);
+  border-radius: var(--radius-sm);
+  width: 26px;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+
+.budget-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 @media (max-width: 900px) {

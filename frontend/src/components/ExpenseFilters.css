@@ -37,9 +37,40 @@
   color: var(--text-faint);
 }
 
+.filter-search input {
+  padding-right: 34px;
+}
+
 .filter-search input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.filter-search-kbd {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 6px;
+  background-color: var(--bg);
+  transition: opacity var(--duration-fast) ease;
+}
+
+.filter-search input:focus ~ .filter-search-kbd {
+  opacity: 0;
+}
+
+@media (max-width: 560px) {
+  .filter-search-kbd {
+    display: none;
+  }
 }
 
 .filter-select {

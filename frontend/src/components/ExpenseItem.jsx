@@ -39,7 +39,7 @@ const getDateLabel = (dateValue) => {
   });
 };
 
-function ExpenseItem({ expense, onEdit, onDelete }) {
+function ExpenseItem({ expense, onEdit, onDelete, index = 0 }) {
   const meta = CATEGORY_META[expense.category] || CATEGORY_META.Other;
 
   const formattedDate = getDateLabel(expense.date);
@@ -51,7 +51,14 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
   }).format(expense.amount);
 
   return (
-    <li className="expense-item">
+    <li
+      className="expense-item"
+      style={{
+        // Unique name lets the View Transitions API animate reorders/removal
+        viewTransitionName: `expense-${expense._id}`,
+        '--stagger': Math.min(index, 10),
+      }}
+    >
       <div className={`expense-icon ${meta.className}`}>{meta.icon}</div>
 
       <div className="expense-details">

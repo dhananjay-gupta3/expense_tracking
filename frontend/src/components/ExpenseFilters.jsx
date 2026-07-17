@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import './ExpenseFilters.css';
 
 const CATEGORIES = [
@@ -19,6 +20,23 @@ const SORT_OPTIONS = [
 ];
 
 function ExpenseFilters({ filters, monthOptions, onFilterChange, onClear }) {
+  const searchRef = useRef(null);
+
+  // Press "/" anywhere to jump to search (unless already typing in a field)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const tag = e.target.tagName;
+      const typing = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
+      if (e.key === '/' && !typing) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const hasActiveFilters =
     filters.search !== '' ||
     filters.category !== '' ||
@@ -30,12 +48,16 @@ function ExpenseFilters({ filters, monthOptions, onFilterChange, onClear }) {
       <div className="filter-search">
         <span className="filter-search-icon">🔍</span>
         <input
+          ref={searchRef}
           type="text"
           placeholder="Search expenses…"
           value={filters.search}
           onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
           aria-label="Search expenses"
         />
+        <kbd className="filter-search-kbd" aria-hidden="true">
+          /
+        </kbd>
       </div>
 
       <select

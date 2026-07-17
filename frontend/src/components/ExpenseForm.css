@@ -71,6 +71,7 @@
 
 .form-group .input-invalid {
   border-color: var(--danger);
+  animation: shakeX 0.35s ease;
 }
 
 .form-group .input-invalid:focus {
@@ -82,6 +83,7 @@
   font-size: 0.78rem;
   margin-top: 5px;
   font-weight: 500;
+  animation: fadeSlideIn 0.2s var(--ease-out);
 }
 
 .btn-submit {

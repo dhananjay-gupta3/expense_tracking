@@ -37,6 +37,21 @@ function ExpenseList({
   onDeleteExpense,
   onExportCsv,
 }) {
+  // Month sections the user has collapsed (keys like "2026-07")
+  const [collapsedMonths, setCollapsedMonths] = useState(() => new Set());
+
+  const toggleMonth = (key) => {
+    setCollapsedMonths((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
   // Re-render after midnight so labels such as "Today" update even if the
   // app remains open overnight.
   const [, setClock] = useState(Date.now());
@@ -101,10 +116,11 @@ function ExpenseList({
         </div>
       ) : isAmountSort ? (
         <ul className="expense-list">
-          {expenses.map((expense) => (
+          {expenses.map((expense, index) => (
             <ExpenseItem
               key={expense._id}
               expense={expense}
+              index={index}
               onEdit={onEditExpense}
               onDelete={onDeleteExpense}
             />
@@ -112,29 +128,52 @@ function ExpenseList({
         </ul>
       ) : (
         <div className="month-groups">
-          {groups.map((group) => (
-            <section key={group.key} className="month-group">
-              <div className="month-group-header">
-                <span className="month-group-label">{group.label}</span>
-                <span className="month-group-meta">
-                  {group.items.length}{' '}
-                  {group.items.length === 1 ? 'expense' : 'expenses'} ·{' '}
-                  <strong>{formatCurrency(group.total)}</strong>
-                </span>
-              </div>
+          {groups.map((group) => {
+            const collapsed = collapsedMonths.has(group.key);
 
-              <ul className="expense-list">
-                {group.items.map((expense) => (
-                  <ExpenseItem
-                    key={expense._id}
-                    expense={expense}
-                    onEdit={onEditExpense}
-                    onDelete={onDeleteExpense}
-                  />
-                ))}
-              </ul>
-            </section>
-          ))}
+            return (
+              <section
+                key={group.key}
+                className={`month-group${collapsed ? ' month-group-collapsed' : ''}`}
+                style={{ viewTransitionName: `month-${group.key}` }}
+              >
+                <button
+                  type="button"
+                  className="month-group-header"
+                  onClick={() => toggleMonth(group.key)}
+                  aria-expanded={!collapsed}
+                >
+                  <span className="month-group-label">
+                    <span className="month-chevron" aria-hidden="true">
+                      ▾
+                    </span>
+                    {group.label}
+                  </span>
+                  <span className="month-group-meta">
+                    {group.items.length}{' '}
+                    {group.items.length === 1 ? 'expense' : 'expenses'} ·{' '}
+                    <strong>{formatCurrency(group.total)}</strong>
+                  </span>
+                </button>
+
+                <div className="month-group-body">
+                  <div className="month-group-body-inner">
+                    <ul className="expense-list">
+                      {group.items.map((expense, index) => (
+                        <ExpenseItem
+                          key={expense._id}
+                          expense={expense}
+                          index={index}
+                          onEdit={onEditExpense}
+                          onDelete={onDeleteExpense}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </section>
+            );
+          })}
         </div>
       )}
     </div>

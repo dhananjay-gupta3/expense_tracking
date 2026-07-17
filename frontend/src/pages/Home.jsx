@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Header from '../components/Header.jsx';
 import ExpenseForm from '../components/ExpenseForm.jsx';
 import ExpenseList from '../components/ExpenseList.jsx';
@@ -12,7 +12,10 @@ import {
   updateExpense,
   deleteExpense,
 } from '../services/expenseService';
+import { withViewTransition } from '../utils/viewTransition';
 import './Home.css';
+
+const UNDO_WINDOW_MS = 5000;
 
 const defaultFilters = {
   search: '',
@@ -39,8 +42,11 @@ function Home() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const showToast = useCallback((message, type = 'success') => {
-    setToast({ message, type });
+  // Delete waiting for its undo window to expire: { expense, timer }
+  const pendingDeleteRef = useRef(null);
+
+  const showToast = useCallback((message, type = 'success', options = {}) => {
+    setToast({ message, type, ...options });
   }, []);
 
   const dismissToast = useCallback(() => setToast(null), []);
@@ -48,7 +54,9 @@ function Home() {
   const fetchExpenses = useCallback(async () => {
     try {
       const data = await getExpenses();
-      setExpenses(data);
+      // Don't resurrect an expense whose delete hasn't been committed yet
+      const pendingId = pendingDeleteRef.current?.expense._id;
+      setExpenses(pendingId ? data.filter((e) => e._id !== pendingId) : data);
     } catch (err) {
       showToast(
         'Could not load expenses. Is the backend running on port 5000?',
@@ -58,6 +66,23 @@ function Home() {
       setLoading(false);
     }
   }, [showToast]);
+
+  // Push the pending delete to the server (called when the undo window
+  // closes, or early if another delete starts)
+  const commitPendingDelete = useCallback(async () => {
+    const pending = pendingDeleteRef.current;
+    if (!pending) return;
+
+    pendingDeleteRef.current = null;
+    clearTimeout(pending.timer);
+
+    try {
+      await deleteExpense(pending.expense._id);
+    } catch (err) {
+      showToast('Failed to delete expense. Refreshing the list.', 'error');
+      await fetchExpenses();
+    }
+  }, [fetchExpenses, showToast]);
 
   useEffect(() => {
     fetchExpenses();
@@ -75,7 +100,20 @@ function Home() {
     await fetchExpenses();
   };
 
-  const handleConfirmDelete = async () => {
+  const handleUndoDelete = useCallback(() => {
+    const pending = pendingDeleteRef.current;
+    if (!pending) return;
+
+    pendingDeleteRef.current = null;
+    clearTimeout(pending.timer);
+
+    withViewTransition(() => {
+      setExpenses((prev) => [...prev, pending.expense]);
+    });
+    showToast('Expense restored');
+  }, [showToast]);
+
+  const handleConfirmDelete = () => {
     const target = deleteTarget;
     setDeleteTarget(null);
     if (!target) return;
@@ -84,20 +122,41 @@ function Home() {
       setEditingExpense(null);
     }
 
-    // Remove instantly from the UI, then sync with the server
-    setExpenses((prev) => prev.filter((expense) => expense._id !== target._id));
-    try {
-      await deleteExpense(target._id);
-      showToast('Expense deleted');
-    } catch (err) {
-      showToast('Failed to delete expense. Refreshing the list.', 'error');
-      await fetchExpenses();
-    }
+    // Only one delete can sit in the undo window — commit the previous one
+    commitPendingDelete();
+
+    // Remove instantly from the UI; the server delete happens after the
+    // undo window so the action can be reversed without a round trip
+    withViewTransition(() => {
+      setExpenses((prev) => prev.filter((expense) => expense._id !== target._id));
+    });
+
+    const timer = setTimeout(commitPendingDelete, UNDO_WINDOW_MS);
+    pendingDeleteRef.current = { expense: target, timer };
+
+    showToast('Expense deleted', 'success', {
+      duration: UNDO_WINDOW_MS,
+      action: { label: 'Undo', onAction: handleUndoDelete },
+    });
   };
 
   const handleEditExpense = (expense) => {
     setEditingExpense(expense);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Animate reorders for discrete filter changes; typing in search updates
+  // on every keystroke, so it stays instant
+  const handleFilterChange = (next) => {
+    if (next.search !== filters.search) {
+      setFilters(next);
+    } else {
+      withViewTransition(() => setFilters(next));
+    }
+  };
+
+  const handleClearFilters = () => {
+    withViewTransition(() => setFilters(defaultFilters));
   };
 
   // Unique months present in the data, newest first — drives the month filter
@@ -220,8 +279,8 @@ function Home() {
             loading={loading}
             filters={filters}
             monthOptions={monthOptions}
-            onFilterChange={setFilters}
-            onClearFilters={() => setFilters(defaultFilters)}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
             onEditExpense={handleEditExpense}
             onDeleteExpense={setDeleteTarget}
             onExportCsv={handleExportCsv}

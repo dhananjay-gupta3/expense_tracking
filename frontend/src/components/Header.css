@@ -90,6 +90,16 @@
   transform: rotate(15deg) scale(1.05);
 }
 
+.theme-toggle:active {
+  transform: scale(0.92);
+}
+
+/* Re-mounts on every theme switch (key={theme}) so the icon spins in */
+.theme-toggle-icon {
+  display: inline-flex;
+  animation: iconSpinIn 0.4s var(--ease-spring);
+}
+
 @media (max-width: 560px) {
   .app-date {
     display: none;

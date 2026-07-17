@@ -64,13 +64,23 @@
 }
 
 .month-group-header {
+  width: 100%;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   padding: 0 2px 8px;
+  border: none;
   border-bottom: 1px solid var(--border-light);
+  background: transparent;
   margin-bottom: 10px;
+  text-align: left;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.month-group-header:hover {
+  background-color: var(--border-light);
 }
 
 .month-group-label {
@@ -79,6 +89,39 @@
   color: var(--text-dark);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.month-chevron {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  transition: transform var(--duration) var(--ease-out);
+}
+
+.month-group-collapsed .month-chevron {
+  transform: rotate(-90deg);
+}
+
+/* Smooth expand/collapse via the grid-rows 0fr→1fr technique */
+.month-group-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--duration) var(--ease-out);
+}
+
+.month-group-collapsed .month-group-body {
+  grid-template-rows: 0fr;
+}
+
+.month-group-body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.month-group-collapsed .month-group-header {
+  margin-bottom: 0;
 }
 
 .month-group-meta {
