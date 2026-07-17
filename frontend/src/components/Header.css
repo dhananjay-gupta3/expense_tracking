@@ -100,6 +100,107 @@
   animation: iconSpinIn 0.4s var(--ease-spring);
 }
 
+/* Account menu */
+.user-menu {
+  position: relative;
+}
+
+.user-menu-btn {
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  transition: border-color 0.15s, transform var(--duration-fast) var(--ease-spring);
+}
+
+.user-menu-btn:hover {
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar-initial {
+  background: linear-gradient(135deg, var(--primary), var(--primary-darker));
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 230px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  z-index: 60;
+  animation: popIn 0.18s var(--ease-out);
+  transform-origin: top right;
+}
+
+.user-dropdown-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 6px;
+}
+
+.user-dropdown-header strong {
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-dropdown-header span {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-dropdown button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-body);
+  transition: background-color var(--duration-fast) ease;
+}
+
+.user-dropdown button:hover {
+  background-color: var(--primary-lighter);
+}
+
+.user-dropdown-danger {
+  color: var(--danger) !important;
+}
+
+.user-dropdown-danger:hover {
+  background-color: var(--danger-light) !important;
+}
+
 @media (max-width: 560px) {
   .app-date {
     display: none;

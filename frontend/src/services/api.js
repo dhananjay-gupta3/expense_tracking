@@ -15,4 +15,28 @@ const api = axios.create({
   },
 });
 
+export const TOKEN_KEY = 'authToken';
+
+// Attach the session token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// An expired/invalid session anywhere kicks the user back to the auth screen
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isAuthRoute = error.config?.url?.startsWith('/auth/');
+    if (error.response?.status === 401 && !isAuthRoute) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.dispatchEvent(new Event('auth:logout'));
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

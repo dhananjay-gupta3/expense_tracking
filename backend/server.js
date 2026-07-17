@@ -6,6 +6,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const expenseRoutes = require('./routes/expenseRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const authRoutes = require('./routes/authRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 // Connect to MongoDB
@@ -26,6 +27,7 @@ app.get('/', (req, res) => {
 });
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/chat', chatRoutes);
 

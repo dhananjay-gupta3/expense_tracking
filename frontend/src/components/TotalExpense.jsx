@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import useCountUp from '../hooks/useCountUp';
+import { useAuth } from '../context/AuthContext.jsx';
+import { updateMe } from '../services/authService';
 import './TotalExpense.css';
 
 const formatCurrency = (value) =>
@@ -9,43 +11,46 @@ const formatCurrency = (value) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-const BUDGET_STORAGE_KEY = 'monthlyBudget';
-
-const getStoredBudget = () => {
-  const stored = Number(localStorage.getItem(BUDGET_STORAGE_KEY));
-  return Number.isFinite(stored) && stored > 0 ? stored : 0;
-};
-
 function AnimatedCurrency({ value }) {
   const animated = useCountUp(value);
   return <>{formatCurrency(animated)}</>;
 }
 
+// Budget lives on the user's profile so it follows them across devices
+// and powers the email warnings sent by the backend
 function BudgetTracker({ spent }) {
-  const [budget, setBudget] = useState(getStoredBudget);
+  const { user, setUser } = useAuth();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const budget = user?.monthlyBudget || 0;
+
+  const persist = async (next) => {
+    try {
+      setSaving(true);
+      const updated = await updateMe({ monthlyBudget: next });
+      setUser(updated);
+      setEditing(false);
+    } catch (err) {
+      // Keep the editor open so the user can retry
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const saveBudget = (e) => {
     e.preventDefault();
     const next = Number(draft);
     // An empty or zero value clears the budget
     if (Number.isFinite(next) && next >= 0) {
-      setBudget(next);
-      if (next > 0) {
-        localStorage.setItem(BUDGET_STORAGE_KEY, String(next));
-      } else {
-        localStorage.removeItem(BUDGET_STORAGE_KEY);
-      }
+      persist(next);
+    } else {
+      setEditing(false);
     }
-    setEditing(false);
   };
 
-  const removeBudget = () => {
-    localStorage.removeItem(BUDGET_STORAGE_KEY);
-    setBudget(0);
-    setEditing(false);
-  };
+  const removeBudget = () => persist(0);
 
   const startEditing = () => {
     setDraft(budget > 0 ? String(budget) : '');
@@ -66,20 +71,31 @@ function BudgetTracker({ spent }) {
             aria-label="Monthly budget amount"
             autoFocus
           />
-          <button type="submit" className="budget-btn" aria-label="Save budget">
-            ✓
+          <button
+            type="submit"
+            className="budget-btn"
+            aria-label="Save budget"
+            disabled={saving}
+          >
+            {saving ? '…' : '✓'}
           </button>
           <button
             type="button"
             className="budget-btn"
             onClick={() => setEditing(false)}
             aria-label="Cancel"
+            disabled={saving}
           >
             ✕
           </button>
         </form>
         {budget > 0 && (
-          <button type="button" className="budget-remove-link" onClick={removeBudget}>
+          <button
+            type="button"
+            className="budget-remove-link"
+            onClick={removeBudget}
+            disabled={saving}
+          >
             Remove budget
           </button>
         )}

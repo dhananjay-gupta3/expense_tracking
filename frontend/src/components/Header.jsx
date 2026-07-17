@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
 import './Header.css';
 
 const getInitialTheme = () => {
@@ -7,13 +8,35 @@ const getInitialTheme = () => {
   return 'light';
 };
 
-function Header() {
+function Header({ onOpenProfile }) {
   const [theme, setTheme] = useState(getInitialTheme);
+  const { user, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Close the user menu on outside click or Escape
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const handlePointer = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handlePointer);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handlePointer);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [menuOpen]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -51,6 +74,59 @@ function Header() {
               {theme === 'light' ? '🌙' : '☀️'}
             </span>
           </button>
+
+          {user && (
+            <div className="user-menu" ref={menuRef}>
+              <button
+                type="button"
+                className="user-menu-btn"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label="Account menu"
+              >
+                {user.avatar ? (
+                  <img
+                    className="user-avatar"
+                    src={user.avatar}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="user-avatar user-avatar-initial">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </button>
+
+              {menuOpen && (
+                <div className="user-dropdown" role="menu">
+                  <div className="user-dropdown-header">
+                    <strong>{user.name}</strong>
+                    <span>{user.email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onOpenProfile?.();
+                    }}
+                  >
+                    👤 Profile & settings
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="user-dropdown-danger"
+                    onClick={logout}
+                  >
+                    ↪ Log out
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>

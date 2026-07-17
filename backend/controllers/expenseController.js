@@ -1,13 +1,14 @@
 const Expense = require('../models/Expense');
+const { checkBudgetAlert } = require('../utils/budgetAlert');
 
-// @desc    Get all expenses (newest first), with optional filters
+// @desc    Get the logged-in user's expenses (newest first), with optional filters
 // @route   GET /api/expenses?category=Food&search=lunch&from=2026-07-01&to=2026-07-31
-// @access  Public
+// @access  Private
 const getExpenses = async (req, res) => {
   try {
     const { category, search, from, to } = req.query;
 
-    const query = {};
+    const query = { user: req.user._id };
 
     if (category) {
       query.category = category;
@@ -43,10 +44,11 @@ const getExpenses = async (req, res) => {
 
 // @desc    Get summary statistics (total, count, per-category breakdown)
 // @route   GET /api/expenses/stats
-// @access  Public
+// @access  Private
 const getStats = async (req, res) => {
   try {
     const [totals] = await Expense.aggregate([
+      { $match: { user: req.user._id } },
       {
         $group: {
           _id: null,
@@ -57,6 +59,7 @@ const getStats = async (req, res) => {
     ]);
 
     const byCategory = await Expense.aggregate([
+      { $match: { user: req.user._id } },
       {
         $group: {
           _id: '$category',
@@ -94,17 +97,21 @@ const getStats = async (req, res) => {
 
 // @desc    Create a new expense
 // @route   POST /api/expenses
-// @access  Public
+// @access  Private
 const createExpense = async (req, res) => {
   try {
     const { amount, description, category, date } = req.body;
 
     const expense = await Expense.create({
+      user: req.user._id,
       amount,
       description,
       category,
       date,
     });
+
+    // Fire-and-forget: may email a budget warning, never blocks the response
+    checkBudgetAlert(req.user);
 
     res.status(201).json({
       success: true,
@@ -131,13 +138,13 @@ const createExpense = async (req, res) => {
 
 // @desc    Update an existing expense
 // @route   PUT /api/expenses/:id
-// @access  Public
+// @access  Private
 const updateExpense = async (req, res) => {
   try {
     const { amount, description, category, date } = req.body;
 
-    const expense = await Expense.findByIdAndUpdate(
-      req.params.id,
+    const expense = await Expense.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
       { amount, description, category, date },
       { new: true, runValidators: true }
     );
@@ -148,6 +155,8 @@ const updateExpense = async (req, res) => {
         message: 'Expense not found',
       });
     }
+
+    checkBudgetAlert(req.user);
 
     res.status(200).json({
       success: true,
@@ -181,10 +190,10 @@ const updateExpense = async (req, res) => {
 
 // @desc    Delete an expense
 // @route   DELETE /api/expenses/:id
-// @access  Public
+// @access  Private
 const deleteExpense = async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id);
+    const expense = await Expense.findOne({ _id: req.params.id, user: req.user._id });
 
     if (!expense) {
       return res.status(404).json({

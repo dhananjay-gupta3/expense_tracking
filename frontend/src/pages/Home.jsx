@@ -34,7 +34,7 @@ const monthLabelOf = (monthKey) => {
   });
 };
 
-function Home() {
+function Home({ onOpenProfile }) {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(defaultFilters);
@@ -257,7 +257,7 @@ function Home() {
 
   return (
     <div className="home">
-      <Header />
+      <Header onOpenProfile={onOpenProfile} />
 
       <main className="container">
         <TotalExpense expenses={expenses} />

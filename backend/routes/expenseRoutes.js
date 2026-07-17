@@ -6,8 +6,11 @@ const {
   updateExpense,
   deleteExpense,
 } = require('../controllers/expenseController');
+const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
+
+router.use(protect);
 
 router.get('/stats', getStats);
 router.route('/').get(getExpenses).post(createExpense);

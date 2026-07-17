@@ -78,7 +78,7 @@ const chatWithAdvisor = async (req, res) => {
       safeHistory.shift();
     }
 
-    const expenses = await Expense.find().sort({ date: -1 });
+    const expenses = await Expense.find({ user: req.user._id }).sort({ date: -1 });
 
     const ai = new GoogleGenAI({ apiKey });
 
